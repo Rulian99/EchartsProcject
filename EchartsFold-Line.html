@@ -1,0 +1,614 @@
+
+{% extends "www/base.html" %}
+
+{% block title %}
+    <div class="header" xmlns="http://www.w3.org/1999/html">
+        <h1 class="page-title">Ops Tools</h1>
+    </div>
+
+    <ul class="breadcrumb">
+        <li><a href="#">Ops Tools</a></li> /
+        <li class="active">fusing</li>
+    </ul>
+{% endblock %}
+
+
+{% block content %}
+       {% load  staticfiles%}
+       <link rel="stylesheet" href="{% static "ops/www/datepicker/jquery.datetimepicker.css" %}">
+       <script src="{% static "ops/www/datepicker/jquery.datetimepicker.full.js" %}"></script>
+       <script src="{% static "ops/www/echarts/echarts.common.min.js" %}"></script>
+       <script src="{% static "ops/www/echarts/echarts.min.js" %}"></script>
+       <script src="{% static "ops/www/echarts/echarts.common.min.js" %}"></script>
+       <script src=" {% static "ops/www/tableexport/tableExport.js" %}"></script>
+       <script src=" {% static "ops/www/tableexport/jquery.base64.js" %}"></script>
+
+
+
+<div id="modchoice" style="margin: 5px">
+    <div  id="productdiv" style="width: 270px; height: 50px; float: left; margin: 20px">
+        <label >
+               <input type="text" class="form-control" id="machinelist"
+         placeholder="resinhub.*.wap.tc.ted" style="height: 35px; ">  集群</label>
+    </div>
+  <div   id="module" style="width: 270px; height: 50px; float: left; margin: 20px">
+               <label >
+               <input type="text" class="form-control" id="modulevalue"
+         placeholder="example:searchhub" style="height: 35px">  模块</label>
+    </div>
+  <div  id="KPI" style="width: 270px; height: 50px; display: inline; margin: 20px; float: left; " >
+        <form role="form" ><label for="txtname">
+                <select class="form-control" id="kpichoice" style="height: 45px">
+                <option value="1" style="color: #b6b6b6" disabled selected>please select</option>
+                <option value="AvgCost" id="2">AvgCost</option>
+                <option value="Req" id="3">Request</option>
+                <option value="ProcCpu" id="4">ProcCpu</option>
+                <option value="ProcRSS" id="5">ProcMem</option>
+                <option value="RZRatio" id="6">RZRatio</option>
+                </select >   KPI</label>
+        </form>
+    </div>
+</div>
+    <div  class="input-append date form_datetime" id="time" style="clear: both; margin-top: 90px; margin-left: 25px " >
+             <input type="text" class="some_class" value="" id="StartTime" style="height: 35px; "/>
+             <span class="add-on" style="height: 35px"><i class="icon-th" ></i>  starttime</span>
+             <span class="add-on" style="height: 35px" ><i class="icon-remove" id="resetstart"></i></span>
+
+             <input type="text" class="some_class" value="" id="EndTime" style="height: 35px; margin-left: 40px"/>
+             <span class="add-on" style="height: 35px"><i class="icon-th" ></i>  endtime</span>
+             <span class="add-on" style="height: 35px"><i class="icon-remove" id="resetend"></i></span>
+
+              <button type="button" id="search"   class="btn btn-large btn-info" style="border-radius: 8px; margin-left: 64px">Search</button>
+    </div>
+<script type="text/javascript">
+    $.datetimepicker.setLocale('en');
+  $('#StartTime').datetimepicker({
+        lang:'en',
+        currentText: 'now',
+        step:30,
+    });
+  $('#EndTime').datetimepicker({
+        lang:'en',
+        currentText: 'now',
+        step:30,
+    });
+
+    $('#resetstart').click(function(){
+        $('#StartTime').datetimepicker('reset');
+    });
+  $('#resetend').click(function(){
+  $('#EndTime').datetimepicker('reset');
+  });
+</script>
+
+    </div>
+    <div id="brainbox" style="clear: both">
+         <div id="main" style="height:250px; margin: 10px;"></div>
+    </div>
+    <script>
+    var myChartone = echarts.init(document.getElementById('main'));
+    var option = {
+    title: {
+{#        link:"javascript: alert('a')",#}
+        target: "self",
+        textStyle: {
+            fontWeight: 'normal',
+            fontSize: 16,
+        },
+        left: 70,
+    },
+    tooltip: {
+        trigger: 'axis'
+    },
+
+    legend: {
+        icon: 'rect',
+        itemWidth: 14,
+        itemHeight: 5,
+        itemGap: 13,
+        data: ['highest', 'AvgCost', 'lowest'],
+        right: '4%',
+        textStyle: {
+            fontSize: 12,
+        }
+    },
+    grid: {
+        show: true,
+        left: '3%',
+        right: '4%',
+        bottom: '12%',
+        backgroundColor: 'rgba(128, 128, 128, 0.03)',
+        containLabel: true
+    },
+    xAxis: [{
+{#        name:'date',#}
+        nameTextStyle: {
+        },
+        type: 'category',
+        axisLine: {
+            lineStyle: {
+                width: 2,
+                opacity:0.3
+            }
+        },
+        axisTick: {
+          lineStyle:{
+              width:2,
+              opacity:0.3
+          }
+        },
+
+    },
+    ],
+
+    yAxis: [{
+{#        type: 'value',#}
+{#        name: '单位（ms）',#}
+        axisTick: {
+            show: false
+        },
+        axisLine: {
+            lineStyle: {
+                color: '#999999',
+                width: 2,
+                show: false
+            }
+        },
+        axisLabel: {
+            margin: 1,
+            textStyle: {
+                fontSize: 14
+            }
+        },
+        splitLine: {
+            show: false,
+            lineStyle: {
+                opacity:0.6,
+            }
+        }
+    }],
+
+    series: [{
+        name: 'highest',
+        type: 'line',
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 5,
+        showSymbol: false,
+        lineStyle: {
+            normal: {
+                width: 2,
+
+            }
+        },
+
+        itemStyle: {
+            normal: {
+                color: '#e74c3c',
+                borderWidth: 12,
+                type:'dotted',
+            }
+        },
+        data: [],
+    }, {
+        name: 'AvgCost',
+        type: 'line',
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 5,
+        showSymbol: false,
+        lineStyle: {
+            normal: {
+                width: 2.5,
+            }
+        },
+        itemStyle: {
+            normal: {
+                color: '#3498db',
+                borderWidth: 2
+
+            }
+        },
+          data:[],
+    }, {
+        name: 'lowest',
+        type: 'line',
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 5,
+        showSymbol: false,
+        lineStyle: {
+            normal: {
+                width: 2,
+            }
+        },
+
+        itemStyle: {
+            normal: {
+                color: '#f1c40f',
+                borderWidth: 12,
+                type:'dotted'
+            }
+        },
+        data: [],
+    } ],
+        dataZoom: [
+                    {
+                        show: true,
+                        realtime: true,
+                        start: 80,
+                        end: 100,
+                    },
+                   {
+                       type: 'inside',
+                       realtime: true,
+                       start: 80,
+                       end: 100,
+                   }
+        ],
+
+}
+    $(document).ready(function() {
+        $("#search").click(function () {
+{#            var dict_kpi={'resin':{'AvgCost':{'Max':380, 'Min':0}, 'ProcCpu':{'Max':650, 'Min':0}, 'Req':{'Max':6000, 'Min':0},},#}
+{#                           'searchhub':{'AvgCost':{'Max':800, 'Min':0}, 'ProcCpu':{'Max':1800, 'Min':0}, 'Req':{'Max':900000, 'Min':0}}#}
+{#            };#}
+            var machinerule = $("#machinelist").val();
+            var module = $("#modulevalue").val();
+            var kpivalue = $("#kpichoice").val();
+            var starttimevalue = $("#StartTime").val();
+            var endtimevalue = $("#EndTime").val();
+            var st = starttimevalue;
+            var et = endtimevalue;
+            if (!machinerule ||   kpivalue == 1 || !module ) {
+                alert("input error!");
+                return;
+           }else if (machinerule != null &&  kpivalue != null  && module != null  ) {
+                if (!st || !et) {
+                    var starttime = Math.round((new Date().getTime() - 24 * 60 * 60 * 1000) / 1000);
+                    var endtime = Math.round((new Date().getTime()) / 1000);
+                    stime = cTime(starttime);
+                    etime = cTime(endtime);
+                    st=Timeconvert(stime);
+                    et=Timeconvert(etime);
+                    $("#StartTime").val(stime);
+                    $("#EndTime").val(etime);
+                }else {
+                    st=Timeconvert(starttimevalue);
+                    et=Timeconvert(endtimevalue);
+                }
+            }
+                     $.ajax({
+                         type: 'get',
+                         async: true,
+                         data: {'domain': machinerule, 'module':module, 'kpi': kpivalue, 'st': st, 'et':et},
+                         url: 'http://data01.wb.zw.ted:8888/thred?',
+{#                         url: '/ops/huatu_data/',#}
+                         beforeSend:function(XMLHttpRequest) {
+                           myChartone.showLoading(
+                               'default',{
+                                   text:   'loading',
+                                   maskColor: 'rgba(149, 165, 166,0.2)',
+                             }
+                         );
+                           $('#search').attr('disabled','disabled');
+                           $("#main").siblings().remove();
+                           $("#main").css({"width": "1100px","height":"250px"});
+                           $("#error_boody").empty();
+                           $("#lost_boody").empty();
+                           $("#max").html();
+                           $("#min").html();
+                      },
+
+                         success: function (data) {
+                           $("#main").css({"width": "0px","height":"0px"});
+                           $('#search').removeAttr('disabled');
+                           myChartone.hideLoading();
+                           if(JSON.stringify(data) == "{}"){
+                               alert("input error!, please check input");
+                               $("#main").css({"width": "1100px","height":"250px"});
+                           }
+                             for(var domain in data) {
+                                 var error_time = 0;
+                                 var index = 0;
+                                 var KpiListData = {};
+                                 var time_data = [];
+                                 var low_data = [];
+                                 var normal_data = [];
+                                 var high_data = [];
+                                 AllKpiData = data[domain];
+                                 var parentdiv = $('<div style="width: 48%;height:350px;margin: 10px; float:left; margin-top:30px;" ></div>');
+                                 parentdiv.attr('id', domain);
+                                 $("#brainbox").append(parentdiv);
+                                 var tmpdiv = echarts.init(document.getElementById(domain));
+                                 tmpdiv.setOption(option);
+                                 for (var key in  AllKpiData) {
+                                     DataInNO = AllKpiData[key];
+                                     time_data[index] = key;
+                                     low_data[index] = DataInNO['lower'];
+                                     normal_data[index] = DataInNO['value'];
+                                     high_data[index] = DataInNO['upper'];
+                                     index = index + 1;
+                                 }
+                                 sortdata = normal_data.sort(function(a,b){return a-b;});
+                                 lengdata =  normal_data.length;
+                                 Mixnu = parseInt(0.03 * lengdata);
+                                 Maxnu = parseInt(0.95 *  lengdata);
+                                 Mix = sortdata[Mixnu];
+                                 Max = sortdata[Maxnu];
+                                 dict_kpi = {};
+                                 dict_kpi['Max'] = Max;
+                                 dict_kpi['Mix'] = Mix;
+                                 dict_kpi['module'] = module;
+                                 dict_kpi['kpivalue'] = kpivalue;
+                                 $("#max").html("Max: "+  Max);
+                                 $("#min").html("Min: " + Mix);
+                             }
+
+                          for(var domain in data) {
+                               var error_time = 0;
+                              var index = 0;
+                               var KpiListData = {};
+                               var time_data = [];
+                               var low_data = [];
+                               var normal_data = [];
+                               var high_data = [];
+                               var inter_dict_upper = [];
+                               var inter_dict_value = [];
+                               var inter_dict_lower = [];
+                               var inter_dict_time = [];
+                               var inter_dict_index = {};
+                              AllKpiData = data[domain];
+                              var parentdiv=$('<div style="width: 48%;height:350px;margin: 10px; float:left; margin-top:30px;" ></div>');
+                              parentdiv.attr('id', domain);
+                              $("#brainbox").append(parentdiv);
+                              var tmpdiv = echarts.init(document.getElementById(domain));
+                              tmpdiv.setOption(option);
+                              for (var key in  AllKpiData) {
+                                  DataInNO = AllKpiData[key];
+                                  time_data[index] = key;
+                                  low_data[index] = DataInNO['lower'];
+                                  normal_data[index] = DataInNO['value'];
+                                  high_data[index] = DataInNO['upper'];
+                                  if (dict_kpi["module"])
+                                  {
+                                      if (DataInNO['alarm'] == 1 && (DataInNO['value'] > dict_kpi['Mix'] && DataInNO['value'] < dict_kpi['Max']))
+
+                                      {
+                                          $("#error_boody").append('<tr><td>' + domain + '</td>' + '<td>' + module + '</td>' + '<td>' + kpivalue + '</td>' + '<td>' + key + '</td>' + '<td>' + DataInNO['value'] + '</td>' + '<td>' + DataInNO['upper'] + '</td>' + '<td>' + DataInNO['upper'] + '</td>' + '<td>' + '<input type="checkbox" checked="checked" name="ischeck">' +'</td>' + '<td>' + '<input type="checkbox">'+ '</td></tr>');
+                                      } else if (DataInNO['alarm'] == 0 && (DataInNO['value'] < dict_kpi['Mix'] || DataInNO['value'] > dict_kpi['Max']))
+                                      {
+                                          inter_dict_upper[error_time] = DataInNO['upper'];
+                                          inter_dict_value[error_time] = DataInNO['value'];
+                                          inter_dict_lower[error_time] = DataInNO['lower'];
+                                          inter_dict_time[error_time] = key;
+                                          inter_dict_index['index'] = error_time;
+                                          error_time = error_time + 1;
+                                      }else if ((DataInNO['alarm'] == 1 && (DataInNO['value'] < dict_kpi['Mix'] || DataInNO['value'] > dict_kpi['Max']))){
+                                          $("#right_boody").append('<tr><td>' + domain + '</td>' + '<td>' + module + '</td>' + '<td>' + kpivalue + '</td>' + '<td>' + key + '</td>' + '<td>' + DataInNO['value'] + '</td>' + '<td>' + DataInNO['upper'] + '</td>' + '<td>' + DataInNO['upper'] + '</td>' + '<td>' + 1 +'</td>' + '<td>' + '<input type="checkbox">'+ '</td></tr>');
+                                      }
+                                      else {
+                                          if (inter_dict_index['index'] > 0){
+                                              for (var errnum in  inter_dict_lower) {
+                                                  $("#lost_boody").append('<tr><td>' + domain + '</td>' + '<td>' + module + '</td>' + '<td>' + kpivalue + '</td>' + '<td>' + inter_dict_time[errnum] + '</td>' + '<td>' + inter_dict_value[errnum] + '</td>' + '<td>' + inter_dict_upper[errnum] + '</td>' + '<td>' + inter_dict_lower[errnum] + '</td>' + '<td>' +  0 +'</td>' + '<td>' + '<input type="checkbox">'+'</td></tr>');
+                                              }
+                                      }
+                                              error_time = 0;
+                                              inter_dict_lower = [];
+                                              inter_dict_upper = [];
+                                              inter_dict_value = [];
+                                              inter_dict_time = [];
+                                              inter_dict_index['index'] = 0;
+                                          }
+                                  }
+                                  index = index + 1;
+                              }
+                          KpiListData['time_data'] = time_data;
+                          KpiListData['low_data'] = low_data;
+                          KpiListData['normal_data'] = normal_data;
+                          KpiListData['high_data'] = high_data;
+                          KpiListData['domain'] = domain;
+                          tmpdiv.setOption({
+                              title: {
+                                  text: KpiListData['domain'],
+                              },
+                              xAxis: [{
+                                 data: KpiListData['time_data']
+                                  },],
+                              series: [{
+                                  name: 'AvgCost',
+                                  data: KpiListData['normal_data'],
+                                  }, {
+                              name: 'highest',
+                              data: KpiListData['high_data']
+                                  }, {
+                            name: 'lowest',
+                            data: KpiListData['low_data']
+                                 }],
+                             });
+                          }
+                         },
+                         error: function (xhr, error,  errorThrown)
+                         {
+                             alert('Response Error !');
+                             $('#search').removeAttr('disabled');
+                             myChartone.hideLoading();
+                             return;
+                         },
+                     }); //end ajax
+{#                   } //end if#}
+{#            } //end else if#}
+        }); //end click
+     }); //end document
+</script>
+{#    <br>#}
+<div class="panel-group" id="accordion" style="text-align: center; clear: both; margin-top: 50px">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" data-parent="#accordion"
+           href="#collapseOne">
+           数据统计，点击展开
+        </a>
+      </h4>
+    </div>
+    <div id="collapseOne" class="panel-collapse collapse in">
+        <p id="max" style="margin: 10px; padding: 10px; display: inline;" ></p><p id="min" style="margin: 10px; padding: 10px; display: inline;"></p>
+      <div class="panel-body">
+    <table class="table table-hover" id="error_table">
+        <caption style="text-align:center" id="error_corllect" onclick="clicktodownerror()">误报统计</caption>
+        <thead>
+      <tr>
+                <th>Domain</th>
+                <th>Module</th>
+                <th>Kpi</th>
+                <th>Time</th>
+                <th>Normal</th>
+                <th>upper</th>
+                <th>lower</th>
+                <th>mmark</th>
+                <th>hmark</th>
+
+      </tr>
+    </thead>
+        <tbody id="error_boody">
+        </tbody>
+    </table>
+              <table class="table table-hover" id="right_table">
+        <caption style="text-align:center" id="error_corllect" onclick="clicktodownerror()">算法预测</caption>
+        <thead>
+      <tr>
+                <th>Domain</th>
+                <th>Module</th>
+                <th>Kpi</th>
+                <th>Time</th>
+                <th>Normal</th>
+                <th>upper</th>
+                <th>lower</th>
+                <th>mmark</th>
+                <th>hmark</th>
+
+      </tr>
+    </thead>
+        <tbody id="right_boody">
+        </tbody>
+    </table>
+          <table class="table table-hover" id="lost_table">
+        <caption style="text-align:center" id="clidown" onclick="clicktodownlost()">漏报统计</caption>
+        <thead>
+      <tr>
+                <th>Domain</th>
+                <th>Module</th>
+                <th>Kpi</th>
+                <th>Time</th>
+                <th>Normal</th>
+                <th>upper</th>
+                <th>lower</th>
+                <th>mmark</th>
+                <th>hmark</th>
+
+
+      </tr>
+    </thead>
+        <tbody id="lost_boody">
+
+        </tbody>
+    </table>
+      </div>
+        <button type="button" class="btn btn-info" id="compute" onclick="compute()">commit</button>
+        <p id="rightratio"></p>
+    </div>
+  </div>
+
+</div>
+
+
+
+<script>
+
+function compute() {
+    var tp = $("#right_boody").children("tr").length;
+    var rightnum= $("#right_boody").children("tr");
+    var fp = 0;
+    for(var i=0; i<tp; i++){
+        var innertd = rightnum.eq(i).find("td");
+        var ischeck = innertd.eq(8).find("input").is(":checked");
+        if(ischeck == true){
+            fp=fp+1;
+        }
+    }
+    if(fp == 0 || tp == 0){
+        alert("error line zero !");
+    }
+    var rratio = fp/tp * 100;
+    rratio = parseFloat(rratio.toFixed(2));
+
+    var Fn = $("#lost_boody").children("tr").length;
+    var LostObjectRow = $("#lost_boody").children("tr");
+    var fn = 0;
+    for (var i =0; i<Fn; i++){
+        var lostRow = LostObjectRow.eq(i).find("td");
+        var ischeck = lostRow.eq(8).find("input").is(":checked");
+        if(ischeck == true){
+            fn = fn + 1;
+        }
+        if(fn == 0 || Fn == 0){
+            alert("Lost data  select zero");
+        }
+        var CallbackRatio = fn/(fn + fp) * 100;
+        CallbackRatio = parseFloat(CallbackRatio.toFixed(2));
+    }
+    $("#rightratio").html("RightRatio:" + rratio + "%"  + "    CallbackRatio" + CallbackRatio);
+{#    alert("test");#}
+}
+    $(function () { $('#collapseOne').collapse('hide')});
+    $(function () { $('#collapseTwo').collapse('hide')});
+    function clicktodownerror() {
+             $("#error_table").tableExport({
+        type:'excel',
+        escape:'false',
+        tableName:'whitebox'
+             });
+    }
+    function clicktodownlost() {
+             $("#lost_table").tableExport({
+        type:'excel',
+        escape:'false',
+        tableName:'whitebox'
+             });
+}
+
+
+         function cTime(t) {
+            if (t != "") {
+                var unixTimestamp = new Date(t * 1000);
+                var year_month_data=unixTimestamp.toLocaleDateString();
+                var year_month_arr = year_month_data.split('/');
+                var year = year_month_arr[0];
+                var month =  year_month_arr[1];
+                var day = year_month_arr[2]
+                var hour=unixTimestamp.getHours();
+                var min=unixTimestamp.getMinutes();
+                if(hour.length == 1){
+                    hour = "0" + hour;
+                }
+                if(min.length == 1){
+                    min = "0" + min;
+                }
+                var realtime=year+ "/" + month + "/" + day + ' '+hour +":"+ min;
+                return realtime;
+            }
+         }
+         function Timeconvert(time) {
+             if (time !=""){
+                var year_month_data = time.split(' ');
+                var year_month_day = year_month_data[0].split('/');
+                var hour_min_data = year_month_data[1].split(':');
+                var year_month=year_month_day[0]+ year_month_day[1] + year_month_day[2];
+                var hour_min = hour_min_data[0] + hour_min_data[1];
+                var realtime=  year_month + "_" + hour_min;
+                return realtime;
+             }
+         };
+</script>
+{% endblock %}
